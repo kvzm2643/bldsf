@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BLADE DISTROFINDER</title>
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #000;
+      --surface: #0a0a0a;
+      --border: #222;
+      --border-bright: #444;
+      --text: #fff;
+      --muted: #555;
+      --muted2: #333;
+      --accent: #fff;
+      --error: #fff;
+      --warn: #888;
+      --radius: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Courier New', 'Lucida Console', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 60px 20px 100px;
+    }
+
+    header {
+      text-align: left;
+      width: 100%;
+      max-width: 660px;
+      margin-bottom: 50px;
+      border-left: 2px solid #fff;
+      padding-left: 18px;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #fff;
+      line-height: 1.1;
+    }
+
+    .tagline {
+      color: var(--muted);
+      font-size: 0.78rem;
+      margin-top: 8px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 660px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 0;
+      border: 1px solid var(--border-bright);
+    }
+
+    .input-row input {
+      flex: 1;
+      background: #000;
+      border: none;
+      border-right: 1px solid var(--border-bright);
+      color: #fff;
+      padding: 14px 16px;
+      font-family: inherit;
+      font-size: 0.88rem;
+      outline: none;
+      letter-spacing: 0.03em;
+    }
+
+    .input-row input::placeholder {
+      color: var(--muted);
+    }
+
+    .input-row input:focus {
+      background: #080808;
+    }
+
+    button.search-btn {
+      background: #fff;
+      color: #000;
+      border: none;
+      padding: 14px 24px;
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.1s;
+      white-space: nowrap;
+    }
+
+    button.search-btn:hover {
+      background: #ccc;
+    }
+
+    button.search-btn:active {
+      background: #aaa;
+    }
+
+    button.search-btn:disabled {
+      background: #222;
+      color: #555;
+      cursor: not-allowed;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.72rem;
+      margin-top: 10px;
+      letter-spacing: 0.05em;
+    }
+
+    .hint code {
+      color: #666;
+      font-family: inherit;
+    }
+
+    .status {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .status.active {
+      display: flex;
+    }
+
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 1px solid #333;
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .error-banner {
+      display: none;
+      border: 1px solid #333;
+      border-left: 2px solid #fff;
+      color: #888;
+      padding: 12px 16px;
+      margin-top: 16px;
+      font-size: 0.8rem;
+      letter-spacing: 0.05em;
+    }
+
+    .error-banner.active {
+      display: block;
+    }
+
+    #results {
+      width: 100%;
+      max-width: 660px;
+      margin-top: 36px;
+    }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .album-art {
+      width: 56px;
+      height: 56px;
+      object-fit: cover;
+      flex-shrink: 0;
+      filter: grayscale(100%);
+    }
+
+    .album-art-placeholder {
+      width: 56px;
+      height: 56px;
+      background: #111;
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .album-meta h2 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .album-meta p {
+      color: var(--muted);
+      font-size: 0.75rem;
+      margin-top: 4px;
+      letter-spacing: 0.05em;
+    }
+
+    .track-card {
+      border-top: 1px solid var(--border);
+      padding: 18px 0;
+    }
+
+    .track-card:last-child {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .track-title {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: #fff;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .track-num {
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 400;
+      min-width: 18px;
+    }
+
+    .track-artist {
+      color: var(--muted);
+      font-size: 0.75rem;
+      margin-top: 5px;
+      letter-spacing: 0.05em;
+    }
+
+    .isrc-badge {
+      display: inline-block;
+      border: 1px solid var(--border);
+      color: #555;
+      font-family: inherit;
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      margin-top: 10px;
+      cursor: pointer;
+      user-select: all;
+      letter-spacing: 0.08em;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .isrc-badge:hover {
+      border-color: #555;
+      color: #888;
+    }
+
+    .isrc-decoded {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .tag {
+      border: 1px solid var(--border);
+      padding: 3px 8px;
+      font-size: 0.7rem;
+      letter-spacing: 0.06em;
+    }
+
+    .tag span {
+      color: var(--muted);
+      margin-right: 4px;
+    }
+
+    .tag strong {
+      color: #999;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 14px 0;
+    }
+
+    .distro-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .distro-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .distro-unknown {
+      font-size: 0.78rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .notice {
+      border-left: 1px solid var(--border-bright);
+      color: #555;
+      padding: 8px 14px;
+      font-size: 0.72rem;
+      margin-bottom: 20px;
+      letter-spacing: 0.06em;
+    }
+
+    .more-tracks-note {
+      color: var(--muted);
+      font-size: 0.72rem;
+      padding: 14px 0;
+      border-top: 1px solid var(--border);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    a {
+      color: #666;
+      text-decoration: none;
+    }
+
+    a:hover {
+      color: #999;
+    }
+
+    footer {
+      margin-top: 80px;
+      color: #222;
+      font-size: 0.68rem;
+      text-align: center;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      width: 100%;
+      max-width: 660px;
+      border-top: 1px solid #111;
+      padding-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logout-btn {
+      background: none;
+      border: 1px solid #222;
+      color: #333;
+      font-family: inherit;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 5px 10px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .logout-btn:hover { border-color: #555; color: #666; }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>Blade<br>DistroFinder</h1>
+    <p class="tagline">Identify the distributor behind any Spotify track or album</p>
+  </header>
+
+  <div class="card">
+    <div class="input-row">
+      <input type="text" id="urlInput" placeholder="Paste a Spotify track or album link..." autocomplete="off"
+        spellcheck="false" />
+      <button class="search-btn" id="searchBtn" onclick="doLookup()">Run</button>
+    </div>
+    <p class="hint">
+      Accepts track links: <code>open.spotify.com/track/...</code> and album links:
+      <code>open.spotify.com/album/...</code>
+    </p>
+
+    <div class="status" id="status">
+      <div class="spinner"></div>
+      <span id="statusText">Fetching...</span>
+    </div>
+
+    <div class="error-banner" id="errorBanner"></div>
+  </div>
+
+  <div id="results"></div>
+
+  <footer>
+    <span>ISRC data via BLADE &mdash; For research and private use only</span>
+    <form method="POST" action="/logout" style="margin:0">
+      <button class="logout-btn" type="submit">Sign out</button>
+    </form>
+  </footer>
+
+  <script>
+    const input = document.getElementById('urlInput');
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') doLookup(); });
+
+    function setStatus(msg) {
+      document.getElementById('statusText').textContent = msg;
+      document.getElementById('status').classList.add('active');
+    }
+
+    function clearStatus() {
+      document.getElementById('status').classList.remove('active');
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('errorBanner');
+      el.textContent = msg;
+      el.classList.add('active');
+    }
+
+    function clearError() {
+      document.getElementById('errorBanner').classList.remove('active');
+    }
+
+    function copyISRC(isrc) {
+      navigator.clipboard.writeText(isrc).then(() => {
+        document.querySelectorAll('.isrc-badge').forEach(b => {
+          if (b.textContent.includes(isrc)) {
+            const orig = b.textContent;
+            b.textContent = 'COPIED';
+            setTimeout(() => (b.textContent = orig), 1200);
+          }
+        });
+      });
+    }
+
+    async function doLookup() {
+      const url = input.value.trim();
+      if (!url) return;
+
+      clearError();
+      document.getElementById('results').innerHTML = '';
+      document.getElementById('searchBtn').disabled = true;
+      setStatus('Fetching track info...');
+
+      try {
+        const res = await fetch('/api/lookup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          showError(data.error || 'Unknown error.');
+          return;
+        }
+
+        clearStatus();
+        renderResults(data);
+      } catch (err) {
+        showError('Could not reach the server. Is it running?');
+      } finally {
+        clearStatus();
+        document.getElementById('searchBtn').disabled = false;
+      }
+    }
+
+    function renderResults(data) {
+      const container = document.getElementById('results');
+      const { results, type, totalTracks, lookedUp, remainingNotLookedUp } = data;
+      if (!results?.length) {
+        container.innerHTML = '<p style="color:#444;font-size:0.8rem;letter-spacing:0.1em;text-transform:uppercase">No results found.</p>';
+        return;
+      }
+
+      const first = results[0];
+      let html = '';
+
+      html += `<div class="result-header">`;
+      if (first.albumArt) {
+        html += `<img class="album-art" src="${esc(first.albumArt)}" alt="" />`;
+      } else {
+        html += `<div class="album-art-placeholder"></div>`;
+      }
+      html += `<div class="album-meta">
+      <h2>${esc(type === 'album' ? first.albumName : first.trackName)}</h2>
+      <p>${esc(first.artist)}</p>
+      <p>${esc(first.releaseDate || '')}</p>
+    </div></div>`;
+
+      if (remainingNotLookedUp > 0) {
+        html += `<div class="notice">Album has ${totalTracks} tracks &mdash; showing distributor info for the first ${lookedUp}. All tracks on an album share the same distributor.</div>`;
+      }
+
+      results.forEach((track, i) => {
+        html += `<div class="track-card">`;
+
+        if (type === 'album') {
+          html += `<div class="track-title"><span class="track-num">${i + 1}</span>${esc(track.trackName)}</div>`;
+          html += `<div class="track-artist">${esc(track.artist)}</div>`;
+        } else {
+          html += `<div class="track-title">${esc(track.trackName)}</div>`;
+          html += `<div class="track-artist">${esc(track.artist)}</div>`;
+        }
+
+        if (track.isrc) {
+          html += `<div class="isrc-badge" title="Click to copy" onclick="copyISRC('${esc(track.isrc)}')">${esc(track.isrc)}</div>`;
+        }
+
+        if (track.isrcDecoded) {
+          const d = track.isrcDecoded;
+          html += `<div class="isrc-decoded">
+          <div class="tag"><span>Country</span><strong>${esc(d.country)}</strong></div>
+          <div class="tag"><span>Registrant</span><strong>${esc(d.registrantCode)}</strong></div>
+          <div class="tag"><span>Year</span><strong>${esc(d.year)}</strong></div>
+        </div>`;
+        }
+
+        html += `<hr class="divider" />`;
+
+        html += `<div><div class="distro-label">Distributor</div>`;
+
+        const info = track.distributorInfo;
+        if (info && info.label) {
+          html += `<div class="distro-name">${esc(info.label)}</div>`;
+        } else if (!track.isrc) {
+          html += `<div class="distro-unknown">No ISRC found for this track</div>`;
+        } else {
+          html += `<div class="distro-unknown">Distributor not found</div>`;
+        }
+
+        html += `</div></div>`;
+      });
+
+      if (remainingNotLookedUp > 0) {
+        html += `<div class="more-tracks-note">+ ${remainingNotLookedUp} more tracks not shown</div>`;
+      }
+
+      container.innerHTML = html;
+    }
+
+    function esc(str) {
+      if (str == null) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+  </script>
+</body>
+
+</html>

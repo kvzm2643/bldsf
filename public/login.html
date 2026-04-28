@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BLADE DISTROFINDER — ACCESS</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #000;
+      color: #fff;
+      font-family: 'Courier New', 'Lucida Console', monospace;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 360px;
+    }
+
+    header {
+      border-left: 2px solid #fff;
+      padding-left: 16px;
+      margin-bottom: 44px;
+    }
+
+    h1 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      line-height: 1.1;
+    }
+
+    .sub {
+      color: #555;
+      font-size: 0.72rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-top: 8px;
+    }
+
+    .field {
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #555;
+      margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      background: #000;
+      border: 1px solid #333;
+      color: #fff;
+      padding: 13px 14px;
+      font-family: inherit;
+      font-size: 0.88rem;
+      outline: none;
+      letter-spacing: 0.05em;
+      transition: border-color 0.15s;
+    }
+
+    input:focus { border-color: #fff; }
+
+    button[type="submit"] {
+      width: 100%;
+      margin-top: 8px;
+      background: #fff;
+      color: #000;
+      border: none;
+      padding: 14px;
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+
+    button[type="submit"]:hover { background: #ccc; }
+    button[type="submit"]:active { background: #aaa; }
+
+    .error {
+      display: none;
+      border-left: 2px solid #fff;
+      color: #666;
+      padding: 10px 14px;
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .error.active { display: block; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Blade<br>DistroFinder</h1>
+    <p class="sub">Restricted access</p>
+  </header>
+
+  <div class="error" id="errMsg">Invalid credentials</div>
+
+  <form method="POST" action="/login">
+    <div class="field">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" autocomplete="username" autocorrect="off" autocapitalize="off" spellcheck="false" required />
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" autocomplete="current-password" required />
+    </div>
+    <button type="submit">Enter</button>
+  </form>
+</div>
+
+<script>
+  if (new URLSearchParams(location.search).get('error')) {
+    document.getElementById('errMsg').classList.add('active');
+  }
+</script>
+</body>
+</html>
